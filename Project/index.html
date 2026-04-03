@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundo dos Desafios</title>
+  <link rel="icon" href="assets/imgs/Mario-ico.ico" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- GAME CONTAINER -->
+  <div id="game-wrapper">
+    <div id="camera">
+      <div id="world">
+
+        <!-- MAP BACKGROUND -->
+        <div id="map-bg"></div>
+
+        <!-- DECORATIVE PATHS (SVG overlay) -->
+        <svg id="paths-svg" xmlns="http://www.w3.org/2000/svg">
+          <!-- Main path connecting nodes -->
+          <path d="M 300,700 Q 400,600 500,500 Q 600,420 700,380 Q 820,340 900,260 Q 980,200 1050,160" 
+                stroke="#c8a45a" stroke-width="36" fill="none" stroke-linecap="round"
+                stroke-dasharray="0" opacity="0.85"/>
+          <path d="M 300,700 Q 400,600 500,500 Q 600,420 700,380 Q 820,340 900,260 Q 980,200 1050,160" 
+                stroke="#f0d080" stroke-width="20" fill="none" stroke-linecap="round"
+                stroke-dasharray="12 10" opacity="0.6"/>
+          <!-- Branch to boss3 -->
+          <path d="M 700,380 Q 780,480 820,580 Q 840,640 860,700"
+                stroke="#c8a45a" stroke-width="36" fill="none" stroke-linecap="round" opacity="0.85"/>
+          <path d="M 700,380 Q 780,480 820,580 Q 840,640 860,700"
+                stroke="#f0d080" stroke-width="20" fill="none" stroke-linecap="round"
+                stroke-dasharray="12 10" opacity="0.6"/>
+        </svg>
+
+        <!-- ISLANDS / TERRAIN decorations -->
+        <div class="island" style="left:180px;top:580px;width:260px;height:200px;border-radius:50% 55% 48% 52%;background:radial-gradient(ellipse at 40% 40%,#5a9e3a,#2d6b1a);box-shadow:0 18px 40px #0006,inset 0 -8px 20px #0003;"></div>
+        <div class="island" style="left:420px;top:360px;width:320px;height:220px;border-radius:52% 48% 55% 45%;background:radial-gradient(ellipse at 45% 38%,#5faa3e,#2d6b1a);box-shadow:0 18px 40px #0006,inset 0 -8px 20px #0003;"></div>
+        <div class="island" style="left:720px;top:200px;width:280px;height:190px;border-radius:48% 52% 50% 50%;background:radial-gradient(ellipse at 42% 40%,#62ad40,#2d6b1a);box-shadow:0 18px 40px #0006,inset 0 -8px 20px #0003;"></div>
+        <div class="island" style="left:740px;top:580px;width:240px;height:180px;border-radius:50% 50% 52% 48%;background:radial-gradient(ellipse at 40% 40%,#5a9e3a,#2d6b1a);box-shadow:0 18px 40px #0007,inset 0 -8px 20px #0003;"></div>
+        <!-- Small floating islands -->
+        <div class="island" style="left:100px;top:300px;width:120px;height:80px;border-radius:50%;background:radial-gradient(ellipse,#5faa3e,#2d6b1a);box-shadow:0 10px 24px #0005;"></div>
+        <div class="island" style="left:980px;top:420px;width:100px;height:70px;border-radius:50%;background:radial-gradient(ellipse,#5faa3e,#2d6b1a);box-shadow:0 10px 24px #0005;"></div>
+
+        <!-- TREES decorations -->
+        <div class="tree" style="left:200px;top:560px;"></div>
+        <div class="tree" style="left:260px;top:590px;"></div>
+        <div class="tree" style="left:440px;top:345px;"></div>
+        <div class="tree" style="left:510px;top:360px;"></div>
+        <div class="tree" style="left:690px;top:365px;"></div>
+        <div class="tree" style="left:750px;top:185px;"></div>
+        <div class="tree" style="left:800px;top:200px;"></div>
+        <div class="tree" style="left:760px;top:565px;"></div>
+        <div class="tree" style="left:820px;top:580px;"></div>
+        <div class="tree" style="left:120px;top:290px;"></div>
+
+        <!-- LIGHTHOUSE decoration -->
+        <div id="lighthouse">
+          <div class="lh-tower"></div>
+          <div class="lh-light"></div>
+          <div class="lh-base"></div>
+        </div>
+
+        <!-- CLOUDS (animated) -->
+        <img src="assets/imgs/clouds.png" class="cloud" id="cloud1" style="left:50px;top:60px;opacity:.7;width:220px;" alt="" />
+        <img src="assets/imgs/clouds.png" class="cloud" id="cloud2" style="left:600px;top:30px;opacity:.5;width:180px;" alt="" />
+        <img src="assets/imgs/clouds.png" class="cloud" id="cloud3" style="left:1100px;top:80px;opacity:.6;width:200px;" alt="" />
+
+        <!-- ===================== ENTITIES ===================== -->
+
+        <!-- NPC TUBA -->
+        <div class="entity npc" id="npc-tuba" style="left:310px;top:670px;">
+          <div class="entity-shadow"></div>
+          <img src="assets/imgs/tuba.png" alt="Tuba" />
+          <div class="name-tag">Tuba</div>
+          <div class="interact-hint" id="hint-tuba">Pressione F para conversar</div>
+        </div>
+
+        <!-- BOSS 1 - eggman -->
+        <div class="entity boss" id="boss-1" data-boss="1" style="left:490px;top:400px;">
+          <div class="entity-shadow"></div>
+          <div class="boss-aura" id="aura-1"></div>
+          <img src="assets/imgs/eggman1.gif" alt="Boss 1" />
+          <div class="name-tag boss-tag">Eggman</div>
+          <div class="boss-skull" id="skull-1">💀</div>
+          <div class="interact-hint" id="hint-1">Pressione F para Lutar!</div>
+        </div>
+
+        <!-- BOSS 2 -->
+        <div class="entity boss" id="boss-2" data-boss="2" style="left:790px;top:230px;">
+          <div class="entity-shadow"></div>
+          <div class="boss-aura" id="aura-2"></div>
+          <img src="assets/imgs/boss2.png" alt="Boss 2" />
+          <div class="name-tag boss-tag">Batalha Galáctica</div>
+          <div class="boss-skull" id="skull-2">💀</div>
+          <div class="interact-hint" id="hint-2">Pressione F para Lutar!</div>
+        </div>
+
+        <!-- BOSS 3 -->
+        <div class="entity boss" id="boss-3" data-boss="3" style="left:850px;top:620px;">
+          <div class="entity-shadow"></div>
+          <div class="boss-aura" id="aura-3"></div>
+          <img src="assets/imgs/carteiratrabalho.png" alt="Boss 3" />
+          <div class="name-tag boss-tag">CLT</div>
+          <div class="boss-skull" id="skull-3">💀</div>
+          <div class="interact-hint" id="hint-3">Pressione F para Lutar!</div>
+        </div>
+
+        <!-- PLAYER -->
+        <div id="player">
+          <div class="entity-shadow player-shadow"></div>
+          <img src="assets/imgs/mario.gif" alt="Player" id="player-img" />
+        </div>
+
+        <!-- COIN RAIN (hidden, triggered on all bosses defeated) -->
+        <div id="coin-rain"></div>
+
+      </div><!-- /world -->
+    </div><!-- /camera -->
+
+    <!-- HUD -->
+    <div id="hud">
+      <div id="hud-title">🏆 Mundo dos Desafios</div>
+      <div id="hud-bosses">
+        <span class="hud-boss" id="hb1">👾 Boss 1: <b id="hb1-status">Vivo</b></span>
+        <span class="hud-boss" id="hb2">👾 Boss 2: <b id="hb2-status">Vivo</b></span>
+        <span class="hud-boss" id="hb3">👾 Boss 3: <b id="hb3-status">Vivo</b></span>
+      </div>
+      <div id="hud-controls">← → ↑ ↓ mover &nbsp;|&nbsp; F interagir</div>
+    </div>
+
+    <!-- DIALOGUE BOX -->
+    <div id="dialogue-overlay" class="hidden">
+      <div id="dialogue-box">
+        <div id="dialogue-portrait">
+          <img src="assets/imgs/tuba.png" alt="Tuba" id="dialogue-portrait-img" />
+        </div>
+        <div id="dialogue-content">
+          <div id="dialogue-name">Tuba</div>
+          <div id="dialogue-text"></div>
+          <button id="dialogue-close">Fechar &nbsp;[F]</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSITION OVERLAY -->
+    <div id="transition-overlay" class="hidden">
+      <div id="transition-text">Entrando na batalha...</div>
+    </div>
+
+  </div><!-- /game-wrapper -->
+
+  <script src="script.js"></script>
+</body>
+</html>

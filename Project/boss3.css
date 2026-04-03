@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Boogaloo&display=swap');
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; background:#000; font-family:'Boogaloo',cursive; }
+#battle-wrapper { width:100vw; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+#bg-scene { position:absolute; inset:0; background:radial-gradient(ellipse at 50% 60%,#001a00,#000 80%); overflow:hidden; }
+.scanline { position:absolute; inset:0; background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,200,50,.04) 3px,rgba(0,200,50,.04) 4px); pointer-events:none; }
+#boss-container { position:relative; z-index:10; text-align:center; margin-bottom:10px; }
+#boss-img { width:160px; image-rendering:pixelated; filter:drop-shadow(0 0 24px #00cc44); animation:bossPulse 1.5s ease-in-out infinite; }
+@keyframes bossPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.04);} }
+#boss-name { font-family:'Bangers',cursive; font-size:2rem; color:#44ee66; letter-spacing:3px; text-shadow:0 0 14px #00cc44; margin:4px 0; }
+#boss-hp-bar-wrap { display:flex; align-items:center; gap:10px; justify-content:center; }
+#boss-hp-bar { width:260px; height:18px; background:#001400; border:2px solid #00cc44; border-radius:10px; overflow:hidden; }
+#boss-hp-fill { height:100%; width:100%; background:linear-gradient(to right,#008822,#44ff66); border-radius:8px; transition:width 0.5s; }
+#boss-hp-text { color:#88ffaa; font-size:.9rem; }
+#player-area { position:absolute; bottom:80px; left:80px; z-index:10; }
+#player-area img { width:64px; image-rendering:pixelated; }
+#battle-ui { position:relative; z-index:10; text-align:center; }
+#battle-title { font-family:'Bangers',cursive; font-size:2rem; color:#ffe060; letter-spacing:3px; text-shadow:2px 2px 0 #7a3a00; }
+#battle-sub { color:#ccc; font-size:1rem; margin:10px 0 18px; line-height:1.5; }
+#action-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.action-btn { font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; background:#ffe060; color:#3a1800; border:none; border-radius:10px; padding:10px 28px; cursor:pointer; transition:transform .15s,background .15s; }
+.action-btn:hover { background:#ffd020; transform:scale(1.06); }
+.action-btn.danger { background:#ff4040; color:#fff; }
+.action-btn.danger:hover { background:#cc2020; }
+#result-overlay { position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.85); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; animation:fadeIn .4s; }
+#result-overlay.hidden { display:none; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+#result-img { width:180px; image-rendering:pixelated; }
+#result-text { font-family:'Bangers',cursive; font-size:3rem; color:#ffe060; text-shadow:2px 2px 0 #7a3a00; letter-spacing:4px; }

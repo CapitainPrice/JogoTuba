@@ -1,0 +1,477 @@
+/* ============================================================
+   MUNDO DOS DESAFIOS — style.css
+   Estética Cuphead / Cartoon Anos 30
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Bangers&display=swap');
+
+/* ── RESET / BASE ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #1a3a5c;
+  font-family: 'Boogaloo', cursive;
+  cursor: default;
+  user-select: none;
+}
+
+/* ── GAME WRAPPER ── */
+#game-wrapper {
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── CAMERA (follows player) ── */
+#camera {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+}
+
+/* ── WORLD (big canvas) ── */
+#world {
+  position: absolute;
+  width: 1400px; height: 950px;
+  /* Sky-water gradient as base */
+  background: linear-gradient(180deg,
+    #6ecff6 0%, #4ab8f0 35%,
+    #3aa8e0 50%, #2d8fc7 65%,
+    #5fa8c8 100%);
+  transition: transform 0.08s linear;
+  image-rendering: pixelated;
+}
+
+/* ── MAP BACKGROUND IMAGE ── */
+#map-bg {
+  position: absolute;
+  inset: 0;
+  background: url('assets/imgs/printGame.png') center/cover no-repeat;
+  opacity: 0.18;
+  mix-blend-mode: luminosity;
+}
+
+/* ── PATH SVG ── */
+#paths-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── ISLANDS ── */
+.island {
+  position: absolute;
+  z-index: 2;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,.45));
+}
+
+/* ── TREES ── */
+.tree {
+  position: absolute;
+  z-index: 3;
+  width: 48px; height: 68px;
+  pointer-events: none;
+}
+.tree::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 12px; height: 28px;
+  background: #5c3a1e;
+  border-radius: 3px;
+}
+.tree::after {
+  content: '';
+  position: absolute;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 24px solid transparent;
+  border-right: 24px solid transparent;
+  border-bottom: 48px solid #2d8c1a;
+  filter: drop-shadow(0 -2px 4px #1a5a0a);
+}
+
+/* ── LIGHTHOUSE ── */
+#lighthouse {
+  position: absolute;
+  left: 80px; top: 400px;
+  z-index: 4;
+  pointer-events: none;
+}
+.lh-base {
+  width: 28px; height: 12px;
+  background: #c8a45a;
+  border-radius: 4px;
+  margin: 0 auto;
+}
+.lh-tower {
+  width: 18px; height: 60px;
+  background: linear-gradient(to bottom, #fff 0%, #f8d060 40%, #e05030 60%, #f8d060 80%, #fff 100%);
+  border-radius: 6px 6px 2px 2px;
+  margin: 0 auto;
+  border: 2px solid #aaa;
+}
+.lh-light {
+  width: 24px; height: 18px;
+  background: radial-gradient(circle, #ffe060, #ffb020);
+  border-radius: 50% 50% 30% 30%;
+  margin: 0 auto 0;
+  box-shadow: 0 0 18px 6px #ffe06088;
+  animation: lhPulse 1.8s ease-in-out infinite;
+}
+@keyframes lhPulse {
+  0%,100% { box-shadow: 0 0 18px 6px #ffe06088; }
+  50% { box-shadow: 0 0 32px 14px #ffe060cc; }
+}
+
+/* ── CLOUDS ── */
+.cloud {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  animation: driftCloud 18s linear infinite;
+}
+#cloud2 { animation-duration: 24s; animation-delay: -8s; }
+#cloud3 { animation-duration: 20s; animation-delay: -14s; }
+@keyframes driftCloud {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(60px); }
+}
+
+/* ============================================================
+   ENTITIES (Player, Bosses, NPC)
+   ============================================================ */
+
+.entity, #player {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* z-index set dynamically by JS */
+}
+
+.entity img, #player img {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Player */
+#player {
+  z-index: 10;
+}
+#player img {
+  width: 52px;
+  height: auto;
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,.5));
+}
+
+/* Entity shadow */
+.entity-shadow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px; height: 12px;
+  background: rgba(0,0,0,.35);
+  border-radius: 50%;
+  filter: blur(4px);
+  z-index: -1;
+}
+.player-shadow {
+  width: 36px; height: 10px;
+  bottom: -2px;
+}
+
+/* NPC TUBA */
+.npc img {
+  width: 64px;
+  height: auto;
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,.5));
+  animation: npcBob 2.2s ease-in-out infinite;
+}
+@keyframes npcBob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* BOSS entities */
+.boss img {
+  width: 72px;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(200,0,0,.4));
+  transition: transform 0.2s;
+}
+.boss:hover img { transform: scale(1.05); }
+
+/* Boss aura */
+.boss-aura {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  animation: auraGlow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+#aura-1 { background: radial-gradient(circle, rgba(255,80,0,.25) 0%, transparent 70%); }
+#aura-2 { background: radial-gradient(circle, rgba(160,0,255,.25) 0%, transparent 70%); }
+#aura-3 { background: radial-gradient(circle, rgba(0,200,60,.25) 0%, transparent 70%); }
+@keyframes auraGlow {
+  0%,100% { transform: scale(1); opacity: .7; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+/* Boss skull badge */
+.boss-skull {
+  position: absolute;
+  top: -10px; right: -6px;
+  font-size: 1.1rem;
+  animation: skullFloat 1.4s ease-in-out infinite alternate;
+}
+@keyframes skullFloat {
+  from { transform: translateY(0) rotate(-8deg); }
+  to   { transform: translateY(-5px) rotate(8deg); }
+}
+
+/* Defeated boss: greyscale stamp */
+.boss.defeated img {
+  filter: grayscale(1) brightness(0.6) drop-shadow(0 4px 12px #000a);
+}
+.boss.defeated .boss-aura { display: none; }
+.boss.defeated .boss-skull { display: none; }
+.boss.defeated::after {
+  content: '✔ DERROTADO';
+  position: absolute;
+  bottom: -22px;
+  font-family: 'Bangers', cursive;
+  font-size: 0.75rem;
+  color: #88ff44;
+  text-shadow: 0 0 6px #44ff00;
+  letter-spacing: 1px;
+}
+
+/* Name tags */
+.name-tag {
+  font-family: 'Bangers', cursive;
+  font-size: 0.9rem;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  pointer-events: none;
+}
+.boss-tag { color: #ffcc00; }
+
+/* Interact hints */
+.interact-hint {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.82);
+  color: #ffe060;
+  font-family: 'Bangers', cursive;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 2px solid #ffe060;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+  letter-spacing: 0.5px;
+}
+.interact-hint.visible { opacity: 1; }
+
+/* ============================================================
+   HUD
+   ============================================================ */
+#hud {
+  position: fixed;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+#hud-title {
+  font-family: 'Bangers', cursive;
+  font-size: 1.5rem;
+  color: #ffe060;
+  text-shadow: 2px 2px 0 #7a3a00, -1px -1px 0 #7a3a00;
+  letter-spacing: 2px;
+}
+
+#hud-bosses {
+  display: flex; gap: 16px;
+  background: rgba(0,0,0,.55);
+  border-radius: 20px;
+  padding: 4px 18px;
+  border: 1.5px solid #ffe06055;
+}
+.hud-boss {
+  font-size: 0.78rem;
+  color: #ddd;
+  letter-spacing: 0.3px;
+}
+.hud-boss b { color: #ff6060; }
+.hud-boss.done b { color: #88ff44; }
+
+#hud-controls {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,.45);
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   DIALOGUE BOX
+   ============================================================ */
+#dialogue-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+  transition: opacity 0.3s;
+}
+#dialogue-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#dialogue-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  background: linear-gradient(135deg, #1a0a00ee, #3a1800ee);
+  border: 3px solid #ffe060;
+  border-radius: 18px;
+  padding: 18px 24px;
+  max-width: 580px;
+  width: 92%;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7), inset 0 1px 0 #ffe06022;
+  animation: dialoguePop 0.25s cubic-bezier(.4,0,.2,1.4);
+}
+@keyframes dialoguePop {
+  from { transform: translateY(30px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+#dialogue-portrait {
+  flex-shrink: 0;
+}
+#dialogue-portrait img {
+  width: 70px;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.6));
+  animation: npcBob 2.2s ease-in-out infinite;
+}
+
+#dialogue-content { flex: 1; }
+
+#dialogue-name {
+  font-family: 'Bangers', cursive;
+  font-size: 1.2rem;
+  color: #ffe060;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #7a3a00;
+}
+
+#dialogue-text {
+  font-size: 0.95rem;
+  color: #f8e8c0;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+#dialogue-close {
+  font-family: 'Bangers', cursive;
+  background: #ffe060;
+  color: #3a1800;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 18px;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+#dialogue-close:hover { background: #ffd020; transform: scale(1.04); }
+
+/* ============================================================
+   TRANSITION OVERLAY
+   ============================================================ */
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+#transition-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+#transition-overlay.hidden {
+  display: none;
+}
+#transition-text {
+  font-family: 'Bangers', cursive;
+  font-size: 2.5rem;
+  color: #ffe060;
+  letter-spacing: 4px;
+  text-shadow: 2px 2px 0 #7a3a00;
+  animation: blinkText 0.6s ease-in-out infinite alternate;
+}
+@keyframes blinkText {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+/* ============================================================
+   COIN RAIN
+   ============================================================ */
+#coin-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  overflow: hidden;
+}
+.coin-drop {
+  position: absolute;
+  top: -60px;
+  width: 32px;
+  height: 32px;
+  background: url('assets/imgs/coin.gif') center/contain no-repeat;
+  animation: coinFall linear forwards;
+}
+@keyframes coinFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.hidden { display: none !important; }

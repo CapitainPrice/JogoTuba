@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Boss 2 – Inimigo</title>
+  <link rel="stylesheet" href="boss2.css" />
+</head>
+<body>
+  <div id="battle-wrapper">
+    <div id="bg-scene"><div class="scanline"></div></div>
+    <div id="boss-container">
+      <img src="assets/imgs/boss2.png" alt="Boss 2" id="boss-img" />
+      <div id="boss-name">INIMIGO</div>
+      <div id="boss-hp-bar-wrap">
+        <div id="boss-hp-bar"><div id="boss-hp-fill"></div></div>
+        <span id="boss-hp-text">HP: 100</span>
+      </div>
+    </div>
+    <div id="player-area">
+      <img src="assets/imgs/mario.gif" alt="Player" id="player-img" />
+    </div>
+    <div id="battle-ui">
+      <h1 id="battle-title">⚔️ BOSS 2 — INIMIGO</h1>
+      <p id="battle-sub">Esta é a tela de batalha do Boss 2.<br>Implemente sua lógica de combate aqui!</p>
+      <div id="action-btns">
+        <button class="action-btn" onclick="simulateVictory()">✔ Simular Vitória</button>
+        <button class="action-btn danger" onclick="goBack()">✖ Voltar ao Mapa</button>
+      </div>
+    </div>
+    <div id="result-overlay" class="hidden">
+      <img src="assets/imgs/boss2vitoria.gif" alt="Vitória" id="result-img" onerror="this.src='assets/imgs/coin.gif'" />
+      <div id="result-text">VITÓRIA!</div>
+      <button class="action-btn" onclick="winAndReturn()">Voltar ao Mapa</button>
+    </div>
+  </div>
+  <script src="boss2.js"></script>
+</body>
+</html>

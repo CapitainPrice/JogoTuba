@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boss 1 – Eggman | Mundo dos Desafios</title>
+  <link rel="icon" href="assets/imgs/Mario-ico.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="boss1.css" />
+</head>
+<body>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-pill" id="hud-score">
+    <span class="hud-label">SCORE</span>
+    <span class="hud-val" id="score-val">0</span>
+  </div>
+  <div class="hud-pill">
+    <span class="hud-label">❤️ VIDAS</span>
+    <span class="hud-val" id="lives-val">5</span>
+  </div>
+  <div class="hud-pill" id="hud-special">
+    <span class="hud-label">⚡ ESPECIAL</span>
+    <span class="hud-val"><span id="special-val">0</span>/3</span>
+  </div>
+  <div class="hud-pill hidden" id="hud-shield">
+    <span class="hud-label">🛡️ ESCUDO</span>
+    <span class="hud-val" id="shield-val">7s</span>
+  </div>
+  <div class="hud-pill hidden" id="hud-invincible">
+    <span class="hud-label hud-blink">🌟 INVENCÍVEL</span>
+  </div>
+</div>
+
+<!-- Boss HP Bar (centro topo) -->
+<div id="boss-hpbar-wrap" class="hidden">
+  <div id="boss-phase-label">⚙️ EGGMAN</div>
+  <div id="boss-hp-track">
+    <div id="boss-hp-fill"></div>
+  </div>
+  <span id="boss-hp-pct">100%</span>
+</div>
+
+<!-- GAME BOARD -->
+<div id="game-board">
+
+  <!-- Sky layers -->
+  <div id="bg-sky"></div>
+  <div id="bg-hills"></div>
+  <div id="fire-overlay"></div>
+  <div id="ember-container"></div>
+
+  <!-- Clouds -->
+  <img src="assets/imgs/clouds.png" class="cloud" id="cloud-a" alt="">
+  <img src="assets/imgs/clouds.png" class="cloud" id="cloud-b" alt="">
+
+  <!-- Floor -->
+  <div id="floor"></div>
+
+  <!-- Pipe obstacle -->
+  <img src="assets/imgs/pipe.png" id="pipe" alt="cano">
+
+  <!-- Player -->
+  <div id="player-wrap">
+    <img src="assets/imgs/mario.gif" id="mario" alt="Mario">
+    <div id="mario-stomp-hitbox"></div>
+    <div id="player-shadow"></div>
+  </div>
+
+  <!-- Boss -->
+  <div id="boss-wrap" class="hidden">
+    <img src="assets/imgs/eggman1.gif" id="boss-img" alt="Eggman">
+    <div class="boss-shadow"></div>
+  </div>
+
+  <!-- Dynamic containers -->
+  <div id="bullet-container"></div>
+  <div id="enemy-container"></div>
+  <div id="item-container"></div>
+  <div id="particle-container"></div>
+  <div id="dmg-number-container"></div>
+
+  <!-- Boss arrival alert -->
+  <div id="boss-alert" class="hidden">⚠️ BOSS CHEGANDO! ⚠️</div>
+
+</div><!-- /game-board -->
+
+<!-- RESULT SCREEN (Cuphead style) -->
+<div id="result-screen" class="hidden">
+  <div id="result-card">
+
+    <div id="result-top">
+      <div id="result-eggman-box">
+        <img id="result-eggman-img" src="assets/imgs/eggmanderrota2.gif" alt="" />
+      </div>
+      <div id="result-title-box">
+        <div id="result-episode">BOSS 1 — EGGMAN</div>
+        <div id="result-title">VITÓRIA!</div>
+      </div>
+    </div>
+
+    <div id="result-stats">
+      <div class="rstat"><div class="rstat-label">PONTUAÇÃO</div><div class="rstat-val" id="rs-score">0</div></div>
+      <div class="rstat"><div class="rstat-label">KILLS</div><div class="rstat-val" id="rs-kills">0</div></div>
+      <div class="rstat"><div class="rstat-label">TEMPO</div><div class="rstat-val" id="rs-time">0s</div></div>
+      <div class="rstat"><div class="rstat-label">DANO TOMADO</div><div class="rstat-val" id="rs-dmg">0</div></div>
+    </div>
+
+    <div id="rank-display">
+      <div id="rank-label">RANK</div>
+      <div id="rank-letter">S</div>
+    </div>
+
+    <div id="result-btns">
+      <button id="btn-restart" class="rbtn">↺  REINICIAR</button>
+      <button id="btn-advance" class="rbtn rbtn-gold">➜  VOLTAR AO MAPA</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Controls hint -->
+<div id="controls-hint">↑ PULAR &nbsp;|&nbsp; ↓ AGACHAR &nbsp;|&nbsp; S ATIRAR &nbsp;|&nbsp; D ESPECIAL &nbsp;|&nbsp; F COLETAR ITEM</div>
+
+<!--
+════════════════════════════════════════
+  🔊  GUIA DE ÁUDIO — coloque em assets/sounds/
+════════════════════════════════════════
+  jump.mp3           → pulo do Mario
+  shoot.mp3          → tiro comum (S)
+  shoot_special.mp3  → tiro especial (D)
+  enemy_die.mp3      → inimigo básico morre
+  mario_hurt.mp3     → Mario leva 1 vida de dano
+  mario_die.mp3      → Mario morre (game over)
+  boss_arrive.mp3    → Eggman entra em cena
+  shield_pickup.mp3  → pega o escudo
+  phase_change.mp3   → boss muda para Fase B
+  boss_special.mp3   → tiro especial do boss
+  victory.mp3        → stinger de vitória
+  defeat.mp3         → stinger de derrota
+  bgm_fight.mp3      → trilha da batalha (LOOP)
+  bgm_victory.mp3    → música resultado vitória (LOOP)
+  bgm_defeat.mp3     → música resultado derrota  (LOOP)
+════════════════════════════════════════
+-->
+<audio id="snd-jump"          src="assets/sounds/jump.mp3"           preload="auto"></audio>
+<audio id="snd-shoot"         src="assets/sounds/shoot.mp3"          preload="auto"></audio>
+<audio id="snd-shoot-special" src="assets/sounds/shoot_special.mp3"  preload="auto"></audio>
+<audio id="snd-enemy-die"     src="assets/sounds/enemy_die.mp3"      preload="auto"></audio>
+<audio id="snd-mario-hurt"    src="assets/sounds/mario_hurt.mp3"     preload="auto"></audio>
+<audio id="snd-mario-die"     src="assets/sounds/mario_die.mp3"      preload="auto"></audio>
+<audio id="snd-boss-arrive"   src="assets/sounds/boss_arrive.mp3"    preload="auto"></audio>
+<audio id="snd-shield"        src="assets/sounds/shield_pickup.mp3"  preload="auto"></audio>
+<audio id="snd-phase"         src="assets/sounds/phase_change.mp3"   preload="auto"></audio>
+<audio id="snd-boss-special"  src="assets/sounds/boss_special.mp3"   preload="auto"></audio>
+<audio id="snd-victory"       src="assets/sounds/victory.mp3"        preload="auto"></audio>
+<audio id="snd-defeat"        src="assets/sounds/defeat.mp3"         preload="auto"></audio>
+<audio id="bgm-fight"         src="assets/sounds/bgm_fight.mp3"      preload="auto" loop></audio>
+<audio id="bgm-result-win"    src="assets/sounds/bgm_victory.mp3"    preload="auto" loop></audio>
+<audio id="bgm-result-lose"   src="assets/sounds/bgm_defeat.mp3"     preload="auto" loop></audio>
+
+<script src="boss1.js"></script>
+</body>
+</html>
