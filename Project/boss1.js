@@ -336,7 +336,7 @@ const PLATFORMS = [
 // ── GAME STATE ───────────────────────────────────────────────
 let isPaused      = false;
 let score         = 0;
-let lives         = 5000
+let lives         = 50
 let enemiesKilled = 0;
 let damageTaken   = 0;
 let specialCharges = 0;
