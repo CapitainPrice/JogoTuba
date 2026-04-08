@@ -472,6 +472,54 @@ html, body {
 }
 
 /* ============================================================
+   CUTSCENE VIDEO
+   ============================================================ */
+#cutscene-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+#cutscene-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+#cutscene-overlay.hidden {
+  display: none;
+}
+
+#cutscene-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+#cutscene-skip {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Bangers', cursive;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+  animation: skipPulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes skipPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ============================================================
    UTILITY
    ============================================================ */
 .hidden { display: none !important; }

@@ -1,71 +1,127 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Boss 1 – Eggman | Mundo dos Desafios</title>
-  <link rel="icon" href="assets/imgs/Mario-ico.ico" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="boss1.css" />
+  <link rel="icon" href="assets/imgs/Mario-ico.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="boss1.css"/>
 </head>
 <body>
 
 <!-- HUD -->
 <div id="hud">
-  <div class="hud-pill" id="hud-score">
-    <span class="hud-label">SCORE</span>
-    <span class="hud-val" id="score-val">0</span>
+  <div class="hud-block" id="hud-score-block">
+    <span class="hud-block-label">SCORE</span>
+    <span class="hud-block-val" id="score-val">0</span>
   </div>
-  <div class="hud-pill">
-    <span class="hud-label">❤️ VIDAS</span>
-    <span class="hud-val" id="lives-val">5</span>
+  <div class="hud-block" id="hud-lives-block">
+    <span class="hud-block-label">VIDAS</span>
+    <div id="hearts-row">
+      <span class="heart" id="heart-1">❤️</span>
+      <span class="heart" id="heart-2">❤️</span>
+      <span class="heart" id="heart-3">❤️</span>
+      <span class="heart" id="heart-4">❤️</span>
+      <span class="heart" id="heart-5">❤️</span>
+    </div>
   </div>
-  <div class="hud-pill" id="hud-special">
-    <span class="hud-label">⚡ ESPECIAL</span>
-    <span class="hud-val"><span id="special-val">0</span>/3</span>
+  <div class="hud-block" id="hud-special-block">
+    <span class="hud-block-label">⚡ ESPECIAL</span>
+    <div id="special-bars">
+      <div class="sp-bar" id="sp-1"><div class="sp-fill" id="spf-1"></div></div>
+      <div class="sp-bar" id="sp-2"><div class="sp-fill" id="spf-2"></div></div>
+      <div class="sp-bar" id="sp-3"><div class="sp-fill" id="spf-3"></div></div>
+    </div>
   </div>
-  <div class="hud-pill hidden" id="hud-shield">
-    <span class="hud-label">🛡️ ESCUDO</span>
-    <span class="hud-val" id="shield-val">7s</span>
+  <div class="hud-block hidden" id="hud-shield-block">
+    <span class="hud-block-label">🛡️ ESCUDO</span>
+    <span class="hud-block-val shield-val-txt" id="shield-val">7s</span>
   </div>
-  <div class="hud-pill hidden" id="hud-invincible">
-    <span class="hud-label hud-blink">🌟 INVENCÍVEL</span>
+  <div class="hud-block hidden" id="hud-invincible-block">
+    <span class="hud-block-label hud-blink">🌟 INVENCÍVEL</span>
+  </div>
+  <div class="hud-block hidden" id="hud-double-block">
+    <span class="hud-block-label hud-blink-blue">🔥 DUPLO</span>
+    <span class="hud-block-val" id="double-val" style="color:#00f2ff">-s</span>
   </div>
 </div>
 
-<!-- Boss HP Bar (centro topo) -->
+<!-- POWER UP TOAST -->
+<div id="powerup-toast" class="hidden"></div>
+
+<!-- PAUSE -->
+<div id="pause-screen" class="hidden">
+  <div id="pause-inner">
+    <div id="pause-title">⏸ PAUSADO</div>
+    <div id="pause-sub">Pressione ESC para continuar</div>
+  </div>
+</div>
+
+<!-- Boss HP -->
 <div id="boss-hpbar-wrap" class="hidden">
   <div id="boss-phase-label">⚙️ EGGMAN</div>
-  <div id="boss-hp-track">
-    <div id="boss-hp-fill"></div>
-  </div>
+  <div id="boss-hp-track"><div id="boss-hp-fill"></div></div>
   <span id="boss-hp-pct">100%</span>
 </div>
 
 <!-- GAME BOARD -->
 <div id="game-board">
 
-  <!-- Sky layers -->
+  <!-- Céu e camadas de fundo -->
   <div id="bg-sky"></div>
-  <div id="bg-hills"></div>
+
+  <!-- Montanhas bg -->
+  <div id="bg-mountains"></div>
+
+  <!-- Árvores grandes bg -->
+  <div id="bg-trees-far"></div>
+
+  <!-- Terreno com plataformas múltiplas -->
+  <div id="terrain-layer">
+    <!-- Plataforma alta (pode pular nela) -->
+    <div class="platform" id="plat-high" style="left:300px;width:220px;bottom:220px;"></div>
+    <!-- Plataforma média esquerda -->
+    <div class="platform" id="plat-mid-l" style="left:600px;width:180px;bottom:165px;"></div>
+    <!-- Plataforma média direita -->
+    <div class="platform" id="plat-mid-r" style="left:900px;width:200px;bottom:185px;"></div>
+    <!-- Plataforma baixa (pode passar por baixo pulando) -->
+    <div class="platform plat-low" id="plat-low" style="left:500px;width:160px;bottom:120px;"></div>
+    <!-- Cogumelos decorativos -->
+    <div class="shroom" style="left:200px;bottom:60px;"></div>
+    <div class="shroom shroom-big" style="left:780px;bottom:60px;"></div>
+    <div class="shroom" style="left:1100px;bottom:60px;"></div>
+    <!-- Pedras -->
+    <div class="rock" style="left:150px;bottom:60px;"></div>
+    <div class="rock rock-big" style="left:680px;bottom:60px;"></div>
+    <!-- Árvores frente -->
+    <div class="tree-front" style="left:50px;bottom:60px;"></div>
+    <div class="tree-front tree-front-big" style="left:1000px;bottom:60px;"></div>
+    <!-- Flores -->
+    <div class="flower" style="left:400px;bottom:62px;">🌸</div>
+    <div class="flower" style="left:860px;bottom:62px;">🌼</div>
+    <div class="flower" style="left:1150px;bottom:62px;">🌸</div>
+  </div>
+
+  <!-- Chão -->
+  <div id="floor">
+    <div id="floor-grass"></div>
+    <div id="floor-dirt"></div>
+  </div>
+
+  <!-- Efeitos atmosféricos -->
   <div id="fire-overlay"></div>
   <div id="ember-container"></div>
 
-  <!-- Clouds -->
+  <!-- Nuvens -->
   <img src="assets/imgs/clouds.png" class="cloud" id="cloud-a" alt="">
   <img src="assets/imgs/clouds.png" class="cloud" id="cloud-b" alt="">
-
-  <!-- Floor -->
-  <div id="floor"></div>
-
-  <!-- Pipe obstacle -->
-  <img src="assets/imgs/pipe.png" id="pipe" alt="cano">
+  <img src="assets/imgs/clouds.png" class="cloud" id="cloud-c" alt="">
 
   <!-- Player -->
   <div id="player-wrap">
     <img src="assets/imgs/mario.gif" id="mario" alt="Mario">
-    <div id="mario-stomp-hitbox"></div>
     <div id="player-shadow"></div>
   </div>
 
@@ -75,76 +131,60 @@
     <div class="boss-shadow"></div>
   </div>
 
-  <!-- Dynamic containers -->
+  <!-- Containers dinâmicos -->
   <div id="bullet-container"></div>
   <div id="enemy-container"></div>
   <div id="item-container"></div>
   <div id="particle-container"></div>
   <div id="dmg-number-container"></div>
 
-  <!-- Boss arrival alert -->
+  <!-- Boss alert -->
   <div id="boss-alert" class="hidden">⚠️ BOSS CHEGANDO! ⚠️</div>
 
 </div><!-- /game-board -->
 
-<!-- RESULT SCREEN (Cuphead style) -->
+<!-- RESULT SCREEN -->
 <div id="result-screen" class="hidden">
   <div id="result-card">
-
     <div id="result-top">
       <div id="result-eggman-box">
-        <img id="result-eggman-img" src="assets/imgs/eggmanderrota2.gif" alt="" />
+        <img id="result-eggman-img" src="assets/imgs/eggmanderrota2.gif" alt=""/>
       </div>
       <div id="result-title-box">
         <div id="result-episode">BOSS 1 — EGGMAN</div>
         <div id="result-title">VITÓRIA!</div>
       </div>
     </div>
-
     <div id="result-stats">
       <div class="rstat"><div class="rstat-label">PONTUAÇÃO</div><div class="rstat-val" id="rs-score">0</div></div>
       <div class="rstat"><div class="rstat-label">KILLS</div><div class="rstat-val" id="rs-kills">0</div></div>
       <div class="rstat"><div class="rstat-label">TEMPO</div><div class="rstat-val" id="rs-time">0s</div></div>
       <div class="rstat"><div class="rstat-label">DANO TOMADO</div><div class="rstat-val" id="rs-dmg">0</div></div>
     </div>
-
     <div id="rank-display">
       <div id="rank-label">RANK</div>
       <div id="rank-letter">S</div>
     </div>
-
     <div id="result-btns">
-      <button id="btn-restart" class="rbtn">↺  REINICIAR</button>
-      <button id="btn-advance" class="rbtn rbtn-gold">➜  VOLTAR AO MAPA</button>
+      <button id="btn-restart" class="rbtn">↺ REINICIAR</button>
+      <button id="btn-advance" class="rbtn rbtn-gold">➜ VOLTAR AO MAPA</button>
     </div>
-
   </div>
 </div>
 
-<!-- Controls hint -->
-<div id="controls-hint">↑ PULAR &nbsp;|&nbsp; ↓ AGACHAR &nbsp;|&nbsp; S ATIRAR &nbsp;|&nbsp; D ESPECIAL &nbsp;|&nbsp; F COLETAR ITEM</div>
+<div id="controls-hint">← → MOVER &nbsp;|&nbsp; ↑ PULAR &nbsp;|&nbsp; ↓ AGACHAR &nbsp;|&nbsp; S ATIRAR &nbsp;|&nbsp; W+S ATIRAR CIMA &nbsp;|&nbsp; X+S ATIRAR BAIXO &nbsp;|&nbsp; D ESPECIAL &nbsp;|&nbsp; ESC PAUSE</div>
 
-<!--
-════════════════════════════════════════
-  🔊  GUIA DE ÁUDIO — coloque em assets/sounds/
-════════════════════════════════════════
-  jump.mp3           → pulo do Mario
-  shoot.mp3          → tiro comum (S)
-  shoot_special.mp3  → tiro especial (D)
-  enemy_die.mp3      → inimigo básico morre
-  mario_hurt.mp3     → Mario leva 1 vida de dano
-  mario_die.mp3      → Mario morre (game over)
-  boss_arrive.mp3    → Eggman entra em cena
-  shield_pickup.mp3  → pega o escudo
-  phase_change.mp3   → boss muda para Fase B
-  boss_special.mp3   → tiro especial do boss
-  victory.mp3        → stinger de vitória
-  defeat.mp3         → stinger de derrota
-  bgm_fight.mp3      → trilha da batalha (LOOP)
-  bgm_victory.mp3    → música resultado vitória (LOOP)
-  bgm_defeat.mp3     → música resultado derrota  (LOOP)
-════════════════════════════════════════
--->
+<!-- BGM TRACKS (score-based + boss) -->
+<audio id="bgm-score0"    src="assets/sounds/bgm_level1.mp3"   preload="auto" loop></audio>
+<audio id="bgm-score250"  src="assets/sounds/bgm_level2.mp3"   preload="auto" loop></audio>
+<audio id="bgm-score500"  src="assets/sounds/bgm_level3.mp3"   preload="auto" loop></audio>
+<audio id="bgm-score750"  src="assets/sounds/bgm_level4.mp3"   preload="auto" loop></audio>
+<audio id="bgm-boss"      src="assets/sounds/bgm_boss.mp3"     preload="auto" loop></audio>
+<audio id="bgm-fight"    src="assets/sounds/bgm_fight.mp3"     preload="auto" loop></audio>
+<audio id="bgm-result-win"  src="assets/sounds/bgm_victory.mp3" preload="auto" loop></audio>
+<audio id="bgm-result-lose"  src="assets/sounds/bgm_defeat.mp3"  preload="auto" loop></audio>
+
+<!-- AUDIO -->
 <audio id="snd-jump"          src="assets/sounds/jump.mp3"           preload="auto"></audio>
 <audio id="snd-shoot"         src="assets/sounds/shoot.mp3"          preload="auto"></audio>
 <audio id="snd-shoot-special" src="assets/sounds/shoot_special.mp3"  preload="auto"></audio>
@@ -157,9 +197,6 @@
 <audio id="snd-boss-special"  src="assets/sounds/boss_special.mp3"   preload="auto"></audio>
 <audio id="snd-victory"       src="assets/sounds/victory.mp3"        preload="auto"></audio>
 <audio id="snd-defeat"        src="assets/sounds/defeat.mp3"         preload="auto"></audio>
-<audio id="bgm-fight"         src="assets/sounds/bgm_fight.mp3"      preload="auto" loop></audio>
-<audio id="bgm-result-win"    src="assets/sounds/bgm_victory.mp3"    preload="auto" loop></audio>
-<audio id="bgm-result-lose"   src="assets/sounds/bgm_defeat.mp3"     preload="auto" loop></audio>
 
 <script src="boss1.js"></script>
 </body>
