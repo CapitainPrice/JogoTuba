@@ -24,6 +24,8 @@ const dialoguePortraitImg = document.getElementById('dialogue-portrait-img');
 const transitionEl  = document.getElementById('transition-overlay');
 const transitionText = document.getElementById('transition-text');
 const coinRain      = document.getElementById('coin-rain');
+const cutsceneOverlay = document.getElementById('cutscene-overlay');
+const cutsceneVideo   = document.getElementById('cutscene-video');
 
 // HUD status spans
 const hb1Status = document.getElementById('hb1-status');
@@ -38,6 +40,7 @@ let player = { x: 290, y: 680 };
 let keys   = {};
 let dialogueOpen = false;
 let inTransition = false;
+let pendingCutscene = false;
 
 // Boss defeat state (from localStorage)
 let defeated = {
@@ -216,11 +219,14 @@ function openTubaDialogue() {
       'Como prometido, aqui está o seu prêmio: 1.000.000 de dólares! 💰💰💰 ' +
       'Você é realmente incrível!';
     triggerCoinRain();
+    // Ao fechar o diálogo, exibe a cutscene de vitória
+    pendingCutscene = true;
   } else {
     dialogueText.textContent =
       'Olá, eu sou o Tuba! 👋 ' +
       'Se você quer ganhar muito dinheiro, terá que passar nesses três desafios. ' +
       'São adversários poderosos — boa sorte, jovem aventureiro!';
+    pendingCutscene = false;
   }
 
   openDialogue();
@@ -241,6 +247,37 @@ function openDialogue() {
 function closeDialogue() {
   dialogueOverlay.classList.add('hidden');
   dialogueOpen = false;
+  if (pendingCutscene) {
+    pendingCutscene = false;
+    setTimeout(playCutscene, 400);
+  }
+}
+
+// ── CUTSCENE ──────────────────────────────────────────────
+function playCutscene() {
+  cutsceneOverlay.classList.remove('hidden');
+  requestAnimationFrame(() => cutsceneOverlay.classList.add('active'));
+  cutsceneVideo.currentTime = 0;
+  cutsceneVideo.play().catch(() => {});
+
+  // Fecha ao terminar o vídeo
+  cutsceneVideo.addEventListener('ended', closeCutscene, { once: true });
+
+  // Fecha ao pressionar qualquer tecla
+  const skipHandler = () => { closeCutscene(); document.removeEventListener('keydown', skipHandler); };
+  document.addEventListener('keydown', skipHandler);
+
+  // Fecha ao clicar na tela
+  cutsceneOverlay.addEventListener('click', function handler() {
+    closeCutscene();
+    cutsceneOverlay.removeEventListener('click', handler);
+  });
+}
+
+function closeCutscene() {
+  cutsceneVideo.pause();
+  cutsceneOverlay.classList.remove('active');
+  setTimeout(() => cutsceneOverlay.classList.add('hidden'), 500);
 }
 
 // ── BATTLE TRANSITION ─────────────────────────────────────
