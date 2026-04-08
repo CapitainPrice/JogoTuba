@@ -11,6 +11,59 @@ const WORLD_H = 950;
 const SPEED = 3.2;
 const INTERACT_DIST = 90; // pixels
 
+// ── WALKABLE ZONES ────────────────────────────────────────
+// Cada zona é um círculo {cx,cy,r} ou retângulo {x,y,w,h}
+// Cobre: ilhas grandes, ilhas pequenas, e a faixa da estrada
+const WALK_CIRCLES = [
+  // ── ILHAS GRANDES ──
+  { cx: 310,  cy: 680, r: 145 },   // ilha inferior esquerda
+  { cx: 580,  cy: 470, r: 175 },   // ilha central
+  { cx: 860,  cy: 295, r: 155 },   // ilha superior direita
+  { cx: 860,  cy: 670, r: 135 },   // ilha inferior direita
+  // ── ILHAS PEQUENAS ──
+  { cx: 160,  cy: 340, r:  70 },   // ilha mini esquerda
+  { cx: 1030, cy: 455, r:  60 },   // ilha mini direita
+  // ── ESTRADA PRINCIPAL (segmentos como cápsulas = dois círculos por ponto) ──
+  { cx: 300,  cy: 700, r: 55 },
+  { cx: 360,  cy: 640, r: 55 },
+  { cx: 420,  cy: 580, r: 55 },
+  { cx: 470,  cy: 530, r: 55 },
+  { cx: 500,  cy: 500, r: 55 },
+  { cx: 540,  cy: 465, r: 55 },
+  { cx: 580,  cy: 440, r: 55 },
+  { cx: 630,  cy: 415, r: 55 },
+  { cx: 670,  cy: 400, r: 55 },
+  { cx: 700,  cy: 390, r: 55 },
+  { cx: 740,  cy: 375, r: 55 },
+  { cx: 780,  cy: 360, r: 55 },
+  { cx: 820,  cy: 345, r: 55 },
+  { cx: 860,  cy: 318, r: 55 },
+  { cx: 900,  cy: 280, r: 55 },
+  { cx: 940,  cy: 248, r: 55 },
+  { cx: 980,  cy: 218, r: 55 },
+  { cx: 1020, cy: 188, r: 55 },
+  { cx: 1050, cy: 168, r: 55 },
+  // ── RAMAL PARA BOSS 3 ──
+  { cx: 720,  cy: 430, r: 52 },
+  { cx: 745,  cy: 468, r: 52 },
+  { cx: 768,  cy: 508, r: 52 },
+  { cx: 790,  cy: 548, r: 52 },
+  { cx: 812,  cy: 590, r: 52 },
+  { cx: 832,  cy: 630, r: 52 },
+  { cx: 850,  cy: 668, r: 52 },
+  { cx: 860,  cy: 700, r: 52 },
+];
+
+function isWalkable(px, py) {
+  // px,py = centro do jogador
+  for (const z of WALK_CIRCLES) {
+    const dx = px - z.cx, dy = py - z.cy;
+    if (dx*dx + dy*dy <= z.r*z.r) return true;
+  }
+  return false;
+}
+
+
 // ── DOM REFS ──────────────────────────────────────────────
 const camera        = document.getElementById('camera');
 const world         = document.getElementById('world');
@@ -111,6 +164,8 @@ function playerCenter() {
 }
 
 // ── MOVE PLAYER ───────────────────────────────────────────
+let waterSplashCooldown = 0;
+
 function movePlayer() {
   if (dialogueOpen || inTransition) return;
 
@@ -126,9 +181,60 @@ function movePlayer() {
     dy *= 0.707;
   }
 
-  // Clamp to world bounds (player is ~52×60)
-  player.x = Math.max(0, Math.min(WORLD_W - 52, player.x + dx));
-  player.y = Math.max(0, Math.min(WORLD_H - 60, player.y + dy));
+  if (dx === 0 && dy === 0) { waterSplashCooldown = 0; return; }
+
+  // Centro atual do jogador
+  const cx = player.x + 26;
+  const cy = player.y + 48;
+
+  // Tentar movimento completo
+  const nx = Math.max(0, Math.min(WORLD_W - 52, player.x + dx));
+  const ny = Math.max(0, Math.min(WORLD_H - 60, player.y + dy));
+  const ncx = nx + 26, ncy = ny + 48;
+
+  if (isWalkable(ncx, ncy)) {
+    player.x = nx;
+    player.y = ny;
+    waterSplashCooldown = 0;
+    return;
+  }
+
+  // Slide horizontal
+  const nxOnly = Math.max(0, Math.min(WORLD_W - 52, player.x + dx));
+  if (isWalkable(nxOnly + 26, cy)) {
+    player.x = nxOnly;
+    waterSplashCooldown = 0;
+    return;
+  }
+
+  // Slide vertical
+  const nyOnly = Math.max(0, Math.min(WORLD_H - 60, player.y + dy));
+  if (isWalkable(cx, nyOnly + 48)) {
+    player.y = nyOnly;
+    waterSplashCooldown = 0;
+    return;
+  }
+
+  // Bloqueado pela água — efeito de splash
+  if (waterSplashCooldown <= 0) {
+    spawnWaterSplash(ncx, ncy);
+    waterSplashCooldown = 28;
+  } else {
+    waterSplashCooldown--;
+  }
+}
+
+function spawnWaterSplash(wx, wy) {
+  for (let i = 0; i < 5; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'water-splash';
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const dist  = 10 + Math.random() * 14;
+    drop.style.left = (wx + Math.cos(angle) * dist) + 'px';
+    drop.style.top  = (wy + Math.sin(angle) * dist) + 'px';
+    world.appendChild(drop);
+    drop.addEventListener('animationend', () => drop.remove());
+  }
 }
 
 // ── UPDATE CAMERA (follows player) ────────────────────────
