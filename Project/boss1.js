@@ -12,9 +12,11 @@
 // ── AUDIO SYSTEM (Web Audio API para sons procedurais) ────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// ── BGM PROCEDURAL SYSTEM (muda a cada 250 de score) ─────────
+// ── BGM SYSTEM ─────────────────────────────────────────────────
+// Usa arquivos mp3 quando disponíveis, fallback para procedural
 let bgmInterval = null;
 let currentBgmLevel = 0;
+let currentBgmId = null;
 let bassOsc = null;
 let melodyOsc = null;
 let arpeggioOsc = null;
@@ -192,35 +194,36 @@ function stopProceduralBGM() {
   arpeggioGain = null;
 }
 
+// Mapeamento score -> id do audio element
+function getBgmIdForScore() {
+  if (isBossPhase)    return 'bgm-boss';
+  if (score >= 1000)  return 'bgm-fight';
+  if (score >= 750)   return 'bgm-score750';
+  if (score >= 500)   return 'bgm-score500';
+  if (score >= 250)   return 'bgm-score250';
+  return 'bgm-score0';
+}
+
+const ALL_BGM_IDS = ['bgm-score0','bgm-score250','bgm-score500','bgm-score750','bgm-boss','bgm-fight','bgm-result-win','bgm-result-lose'];
+
 function updateBGMProcedural() {
   if (isGameOver || isPaused) return;
-
-  let newLevel;
-  if (isBossPhase) {
-    newLevel = 'boss';
-  } else if (score >= 1000) {
-    // Score 1000+ mas boss ainda não apareceu = música de batalha épica
-    newLevel = 'battle';
-  } else if (score >= 750) {
-    newLevel = 4;
-  } else if (score >= 500) {
-    newLevel = 3;
-  } else if (score >= 250) {
-    newLevel = 2;
-  } else {
-    newLevel = 1;
-  }
-
-  if (newLevel !== currentBgmLevel) {
-    currentBgmLevel = newLevel;
-    if (newLevel === 'boss') {
-      startProceduralBGM('boss');
-    } else if (newLevel === 'battle') {
-      startProceduralBGM('battle');
+  const targetId = getBgmIdForScore();
+  if (targetId === currentBgmId) return;
+  currentBgmId = targetId;
+  stopProceduralBGM();
+  ALL_BGM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === targetId) {
+      el.volume = 0.55;
+      el.currentTime = 0;
+      el.play().catch(() => {});
     } else {
-      startProceduralBGM(newLevel);
+      el.pause();
+      el.currentTime = 0;
     }
-  }
+  });
 }
 
 function playProceduralSound(type, vol = 0.3) {
@@ -294,14 +297,16 @@ function stopSound(id) {
   el.pause(); el.currentTime = 0;
 }
 function stopAllBGMs() {
-  // Parar sons procedurais
   stopProceduralBGM();
-  // Tentar parar elementos de audio também
+  currentBgmId = null;
   ['bgm-score0','bgm-score250','bgm-score500','bgm-score750','bgm-boss','bgm-fight','bgm-result-win','bgm-result-lose'].forEach(stopSound);
 }
 function playBGM(id, vol = 0.5) {
-  // Agora usa sons procedurais por padrão
-  updateBGMProcedural();
+  stopAllBGMs();
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.volume = vol; el.currentTime = 0;
+  el.play().catch(() => {});
 }
 
 // ── BGM SCORE SYSTEM (usa sons procedurais) ────────────────
@@ -331,7 +336,7 @@ const PLATFORMS = [
 // ── GAME STATE ───────────────────────────────────────────────
 let isPaused      = false;
 let score         = 0;
-let lives         = 500
+let lives         = 5000
 let enemiesKilled = 0;
 let damageTaken   = 0;
 let specialCharges = 0;
@@ -482,10 +487,13 @@ function saveAllIntervals() {
 }
 
 function stopAllIntervals() {
-  // Parar todos os intervalos ativos
   if (spawnInterval) clearInterval(spawnInterval);
   if (bossBulletInterval) clearInterval(bossBulletInterval);
   if (bossSpecialInterval) clearInterval(bossSpecialInterval);
+  if (bossSpiralInterval) clearInterval(bossSpiralInterval);
+  if (bossLaserInterval) clearInterval(bossLaserInterval);
+  if (bossEnrageInterval) clearInterval(bossEnrageInterval);
+  if (bossMovementInterval) clearInterval(bossMovementInterval);
   if (boxSpawnInterval) clearInterval(boxSpawnInterval);
   if (emberInterval) clearInterval(emberInterval);
 }
@@ -1064,6 +1072,17 @@ function handleDamage(amount = 1) {
 }
 
 // ── BOSS ─────────────────────────────────────────────────────
+let bossX = null;          // null = usa CSS right
+let bossVX = 0;            // velocidade horizontal (fase B)
+let bossDashing = false;
+let bossRageMode = false;   // fase C: HP <= 20%
+let bossLaserActive = false;
+let bossLaserInterval = null;
+let bossPhaseClockInterval = null;
+let bossSpiralInterval = null;
+let bossEnrageInterval = null;
+let bossMovementInterval = null;
+
 function triggerBossArena() {
   if (isBossPhase) return;
   isBossPhase = true;
@@ -1088,6 +1107,10 @@ function triggerBossArena() {
     bossHpWrap.classList.remove('hidden');
     bossWrap.style.bottom = (FLOOR_H + bossY) + 'px';
 
+    // Música do boss
+    currentBgmId = null; // força reload
+    updateBGMProcedural();
+
     // Iniciar intervalos do boss
     bossBulletInterval = setInterval(bossShoot, 450);
     spawnInterval = setInterval(() => { if (!isGameOver && !isPaused) spawnEnemy(); }, 3000);
@@ -1102,22 +1125,207 @@ function hitBoss(dmg, special=false) {
   spawnDmgNumber(bossWrap, `-${dmg}`, special?'dmg-special':'dmg-normal');
   bossHpFill.style.width = bossHP+'%';
   bossHpPct.textContent  = bossHP+'%';
+
+  // ── FASE B: HP <= 50 ──
   if (bossHP <= 50 && bossPhase === 'A') {
     bossPhase = 'B';
-    // eggman2.gif está originalmente virado para a direita, CSS inverte via .phase-b
     bossImgEl.src = 'assets/imgs/eggman2.gif';
     bossImgEl.classList.add('phase-b');
     bossPhaseLabel.textContent = '⚙️ EGGMAN — FASE B';
     bossHpFill.classList.add('phase-b');
     bossVY = 3.5;
-    clearInterval(bossBulletInterval);
-    bossBulletInterval = setInterval(bossShoot, 300);
-    bossSpecialInterval = setInterval(bossSpecialShoot, 6000);
     playSound('snd-phase', 0.8);
+    showToast('⚙️ FASE B — O EGGMAN FICOU COM RAIVA!', '#ff4400');
+
+    // Parar tiro simples e iniciar padrões da fase B
+    clearInterval(bossBulletInterval);
+    bossBulletInterval = setInterval(bossShoot, 280);
+    bossSpecialInterval = setInterval(bossSpecialShoot, 5000);
+
+    // Tiro em espiral
+    bossSpiralInterval = setInterval(bossSpiralShoot, 3500);
+
+    // Laser a cada 9s
+    bossLaserInterval = setInterval(bossFireLaser, 9000);
+
+    // Dash a cada 7s
+    bossEnrageInterval = setInterval(bossDash, 7000);
+
+    // Movimento horizontal agressivo
+    startBossHorizontalMovement();
   }
+
+  // ── FASE C / RAGE: HP <= 20 ──
+  if (bossHP <= 20 && bossPhase === 'B' && !bossRageMode) {
+    bossRageMode = true;
+    bossPhase = 'C';
+    bossPhaseLabel.textContent = '💀 EGGMAN — FÚRIA FINAL!';
+    bossHpFill.classList.remove('phase-b');
+    bossHpFill.classList.add('phase-c');
+    bossWrap.classList.add('boss-rage');
+    showToast('💀 FÚRIA FINAL! SEM MISERICÓRDIA!', '#ff0000');
+    playSound('snd-phase', 0.9);
+
+    // Velocidade extrema
+    bossVY = 5;
+    clearInterval(bossBulletInterval);
+    bossBulletInterval = setInterval(bossShoot, 180);
+    clearInterval(bossSpiralInterval);
+    bossSpiralInterval = setInterval(bossSpiralShoot, 2000);
+    clearInterval(bossEnrageInterval);
+    bossEnrageInterval = setInterval(bossDash, 4000);
+    clearInterval(bossLaserInterval);
+    bossLaserInterval = setInterval(bossFireLaser, 6000);
+  }
+
   score += dmg * 10; updateHUD();
-  if (bossHP <= 0) endGame(true);
+  if (bossHP <= 0) {
+    // Limpar todos os intervalos do boss
+    clearInterval(bossBulletInterval);
+    clearInterval(bossSpecialInterval);
+    clearInterval(bossSpiralInterval);
+    clearInterval(bossLaserInterval);
+    clearInterval(bossEnrageInterval);
+    clearInterval(bossMovementInterval);
+    endGame(true);
+  }
 }
+
+// ── FASE B: HORIZONTAL MOVEMENT ──────────────────────────────
+function startBossHorizontalMovement() {
+  if (bossMovementInterval) clearInterval(bossMovementInterval);
+  // Inicializar posição X do boss baseada na posição atual
+  const bRect = bossWrap.getBoundingClientRect();
+  const gRect = board.getBoundingClientRect();
+  bossX = BOARD_W() - (bRect.right - gRect.left);  // equivale ao 'right' atual
+  bossVX = bossRageMode ? 3.5 : 2.2;
+
+  bossMovementInterval = setInterval(() => {
+    if (isGameOver || isPaused || !isBossPhase) return;
+    bossX += bossVX;
+    const maxRight = BOARD_W() - 90;
+    const minRight = 20;
+    if (bossX >= maxRight) { bossX = maxRight; bossVX = -Math.abs(bossVX); }
+    if (bossX <= minRight) { bossX = minRight; bossVX =  Math.abs(bossVX); }
+    bossWrap.style.right = bossX + 'px';
+    bossWrap.style.left = 'auto';
+  }, 16);
+}
+
+// ── FASE B: DASH ─────────────────────────────────────────────
+function bossDash() {
+  if (!isBossPhase || isGameOver || bossDashing) return;
+  bossDashing = true;
+  bossWrap.classList.add('boss-dash');
+  showToast('⚡ DASH!', '#ff8800');
+  playSound('snd-boss-special', 0.7);
+
+  // Direção do dash em direção ao jogador
+  const bRect = bossWrap.getBoundingClientRect();
+  const pRect = playerWrap.getBoundingClientRect();
+  const dir = (pRect.left < bRect.left) ? 1 : -1;  // em coordenadas 'right'
+  const dashSpeed = bossRageMode ? 22 : 16;
+  let dashFrames = bossRageMode ? 18 : 14;
+
+  const dashMv = setInterval(() => {
+    if (!isBossPhase || isGameOver) { clearInterval(dashMv); bossDashing = false; return; }
+    bossX = Math.max(20, Math.min(BOARD_W() - 90, bossX + dir * dashSpeed));
+    bossWrap.style.right = bossX + 'px';
+
+    // Causa dano ao contato durante o dash
+    if (checkCollision(bossWrap, playerWrap) && canTakeDmg) {
+      handleDamage(bossRageMode ? 2 : 1);
+    }
+
+    dashFrames--;
+    if (dashFrames <= 0) {
+      clearInterval(dashMv);
+      bossWrap.classList.remove('boss-dash');
+      bossDashing = false;
+    }
+  }, 16);
+}
+
+// ── FASE B: SPIRAL SHOOT ─────────────────────────────────────
+function bossSpiralShoot() {
+  if (!isBossPhase || isGameOver) return;
+  playSound('snd-boss-special', 0.6);
+  showToast('🌀 TIRO ESPIRAL!', '#cc00ff');
+
+  const count = bossRageMode ? 10 : 7;
+  const bRect = bossWrap.getBoundingClientRect();
+  const gRect = board.getBoundingClientRect();
+  const cx = bRect.left - gRect.left + bRect.width / 2;
+  const cy = bossY + 60;
+
+  for (let i = 0; i < count; i++) {
+    const delay = i * (bossRageMode ? 60 : 80);
+    setTimeout(() => {
+      if (!isBossPhase || isGameOver) return;
+      const angle = (360 / count) * i * (Math.PI / 180);
+      spawnSpiralBullet(cx, cy, Math.cos(angle), Math.sin(angle));
+    }, delay);
+  }
+}
+
+function spawnSpiralBullet(cx, cy, dx, dy) {
+  const b = document.createElement('div');
+  b.className = 'boss-bullet boss-spiral-bullet';
+  let bx = cx, by = cy;
+  b.style.left = bx + 'px';
+  b.style.bottom = by + 'px';
+  board.appendChild(b);
+  const spd = bossRageMode ? 8 : 6;
+  const vx = dx * spd, vy = dy * spd;
+  const mv = setInterval(() => {
+    if (isGameOver || !b.parentElement) { clearInterval(mv); return; }
+    bx += vx; by += vy;
+    b.style.left = bx + 'px';
+    b.style.bottom = by + 'px';
+    if (checkCollision(b, playerWrap)) { handleDamage(1); b.remove(); clearInterval(mv); return; }
+    if (bx < -60 || bx > BOARD_W() + 60 || by < -60 || by > BOARD_H() + 60) { b.remove(); clearInterval(mv); }
+  }, 16);
+}
+
+// ── FASE B: LASER ─────────────────────────────────────────────
+function bossFireLaser() {
+  if (!isBossPhase || isGameOver || bossLaserActive) return;
+  bossLaserActive = true;
+
+  // Aviso visual antes do laser
+  showToast('⚠️ LASER!', '#ff0000');
+  bossWrap.classList.add('boss-charging');
+
+  setTimeout(() => {
+    if (!isBossPhase || isGameOver) { bossLaserActive = false; bossWrap.classList.remove('boss-charging'); return; }
+    bossWrap.classList.remove('boss-charging');
+    playSound('snd-boss-special', 1.0);
+
+    const laser = document.createElement('div');
+    laser.className = 'boss-laser boss-laser-b';
+    const bRect = bossWrap.getBoundingClientRect();
+    const gRect = board.getBoundingClientRect();
+    const laserRight = BOARD_W() - (bRect.left - gRect.left);
+    laser.style.right = laserRight + 'px';
+    laser.style.bottom = (bossY + 40) + 'px';
+    laser.style.width = (bRect.left - gRect.left + 30) + 'px';
+    board.appendChild(laser);
+
+    // Checar colisão por 1.5s
+    const dmgInterval = setInterval(() => {
+      if (!laser.parentElement) { clearInterval(dmgInterval); return; }
+      if (checkCollision(laser, playerWrap) && canTakeDmg) handleDamage(bossRageMode ? 2 : 1);
+    }, 200);
+
+    setTimeout(() => {
+      laser.remove();
+      clearInterval(dmgInterval);
+      bossLaserActive = false;
+    }, 1500);
+  }, 1200); // tempo de carregamento
+}
+
+// ── BOSS PHASE A: mantém right fixo ──────────────────────────
 
 function bossShoot() {
   if (!isBossPhase||isGameOver) return;
@@ -1125,12 +1333,31 @@ function bossShoot() {
   b.className = 'boss-bullet';
   const bRect = bossWrap.getBoundingClientRect();
   const gRect = board.getBoundingClientRect();
-  let cx = bRect.left - gRect.left;
+  let cx = bRect.left - gRect.left + bRect.width / 2;
   let cy = bossY + 60;
   b.style.left=cx+'px'; b.style.bottom=cy+'px'; board.appendChild(b);
-  const angle = 180+(Math.random()*50-25);
-  const rad=angle*Math.PI/180;
-  const vx=Math.cos(rad)*10,vy=Math.sin(rad)*10;
+
+  let vx, vy;
+  if (bossPhase !== 'A') {
+    // Fase B/C: mirar no jogador
+    const pRect = playerWrap.getBoundingClientRect();
+    const px = pRect.left - gRect.left + pRect.width / 2;
+    const py = (BOARD_H() - pRect.bottom + gRect.top) + FLOOR_H + marioY + 30;
+    const dx = px - cx, dy = (FLOOR_H + marioY + 30) - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const spd = bossRageMode ? 13 : 10;
+    vx = (dx/len)*spd; vy = (dy/len)*spd;
+    // Tiro triplo na fase B
+    if (bossPhase === 'B' || bossPhase === 'C') {
+      spawnAimedBossBullet(cx, cy, vx * 0.85, vy * 0.85 + 2.5);
+      spawnAimedBossBullet(cx, cy, vx * 0.85, vy * 0.85 - 2.5);
+    }
+  } else {
+    const angle = 180+(Math.random()*50-25);
+    const rad=angle*Math.PI/180;
+    vx=Math.cos(rad)*10; vy=Math.sin(rad)*10;
+  }
+
   const mv=setInterval(()=>{
     if(isGameOver||!b.parentElement){clearInterval(mv);b.remove();return;}
     cx+=vx;cy+=vy; b.style.left=cx+'px'; b.style.bottom=cy+'px';
@@ -1138,8 +1365,24 @@ function bossShoot() {
     board.querySelectorAll('.bullet:not(.boss-bullet):not(.boss-bullet-special)').forEach(pb=>{
       if(checkCollision(b,pb)){if(!pb.classList.contains('special-bullet'))pb.remove();b.remove();clearInterval(mv);}
     });
-    if(cx<-60||cy<-60||cy>BOARD_H()+60){b.remove();clearInterval(mv);}
+    if(!b.parentElement) return;
+    if(cx<-60||cy<-60||cy>BOARD_H()+60||cx>BOARD_W()+60){b.remove();clearInterval(mv);}
   },16);
+}
+
+function spawnAimedBossBullet(cx, cy, vx, vy) {
+  const b = document.createElement('div');
+  b.className = bossRageMode ? 'boss-bullet boss-bullet-fast' : 'boss-bullet';
+  let bx = cx, by = cy;
+  b.style.left = bx + 'px'; b.style.bottom = by + 'px';
+  board.appendChild(b);
+  const mv = setInterval(() => {
+    if (isGameOver || !b.parentElement) { clearInterval(mv); return; }
+    bx += vx; by += vy;
+    b.style.left = bx + 'px'; b.style.bottom = by + 'px';
+    if (checkCollision(b, playerWrap)) { handleDamage(1); b.remove(); clearInterval(mv); return; }
+    if (bx < -60 || bx > BOARD_W()+60 || by < -60 || by > BOARD_H()+60) { b.remove(); clearInterval(mv); }
+  }, 16);
 }
 
 function bossSpecialShoot() {
@@ -1291,7 +1534,10 @@ function endGame(victory){
   clearInterval(bossSpecialInterval);clearInterval(shieldTimerCD);
   clearInterval(specialFillInterval);clearInterval(boxSpawnInterval);
   clearInterval(doubleTimerCD);clearInterval(mysteryBoxInterval);
-  stopProceduralBGM(); // Parar BGM procedural
+  clearInterval(bossSpiralInterval);clearInterval(bossLaserInterval);
+  clearInterval(bossEnrageInterval);clearInterval(bossMovementInterval);
+  stopProceduralBGM();
+  stopAllBGMs();
   const elapsed=Math.floor((Date.now()-startTime)/1000);
   if(victory){
     bossImgEl.src='assets/imgs/eggmanderrota2.gif';

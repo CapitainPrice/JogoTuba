@@ -374,10 +374,41 @@ body{font-family:var(--font-hud)}
   animation:laserFlash .1s infinite alternate;
   z-index:44;
 }
+.boss-laser-b{
+  background:linear-gradient(0deg,transparent,rgba(180,0,255,0.3),#cc00ff,rgba(180,0,255,0.3),transparent);
+  border-color:#cc00ff;
+  box-shadow:0 0 30px #cc00ff,0 0 60px #8800ff,0 0 90px #ff00cc;
+}
 @keyframes laserFlash{
   from{opacity:.8;filter:brightness(1)}
-  to{opacity:1;filter:brightness(1.5)}
+  to{opacity:1;filter:brightness(1.8)}
 }
+
+/* Phase B boss states */
+.boss-dash #boss-img{
+  filter:brightness(3) saturate(4) hue-rotate(30deg)!important;
+  transform:scaleX(-1) scaleX(1.15) !important;
+}
+#boss-wrap.boss-dash{filter:drop-shadow(0 0 18px #ff8800);}
+#boss-wrap.boss-charging #boss-img{animation:bossCharge .18s infinite alternate;}
+@keyframes bossCharge{
+  from{filter:brightness(1.5) hue-rotate(0deg);transform:scale(1)}
+  to{filter:brightness(3) hue-rotate(80deg) saturate(4);transform:scale(1.08)}
+}
+#boss-wrap.boss-rage{animation:bossRageShake .12s infinite alternate;}
+@keyframes bossRageShake{
+  from{transform:translateX(-3px)}
+  to{transform:translateX(3px)}
+}
+
+/* Spiral bullet */
+.boss-spiral-bullet{
+  width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle,#fff 20%,#cc00ff 60%,#3300cc 100%);
+  box-shadow:0 0 14px #cc00ff,0 0 6px #fff;
+  animation:spiralPulse .25s infinite alternate;
+}
+@keyframes spiralPulse{from{transform:scale(1)}to{transform:scale(1.4)}}
 
 /* Mystery box */
 .mystery-box{
